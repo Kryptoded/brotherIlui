@@ -1,8 +1,8 @@
 <template>
   <q-card>
-    <q-markup-table>
+    <q-inner-loading :showing="props.loading" v-if="props.loading" />
+    <q-markup-table v-else>
       <thead>
-        <q-th>ID</q-th>
         <q-th>Номер телефона</q-th>
         <q-th>DG_ID</q-th>
       </thead>
@@ -12,10 +12,8 @@
           :key="user.id"
           style="cursor: pointer"
           @click="onUserClick(user)"
+          :class="{'active': props.activeUser?.dg_id === user.dg_id}"
         >
-          <q-td class="text-center">
-            {{ user.id }}
-          </q-td>
           <q-td class="text-center">
             {{ user.phone }}
           </q-td>
@@ -34,6 +32,14 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  activeUser: {
+    type: Object,
+    default: null
+  }
 });
 
 const emits = defineEmits(["onUserClick"]);
@@ -42,3 +48,11 @@ function onUserClick(user) {
   emits("onUserClick", user);
 }
 </script>
+
+<style scoped>
+
+.active {
+  background-color: var(--q-primary) !important;
+  color: white !important;
+}
+</style>

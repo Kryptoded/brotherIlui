@@ -3,117 +3,121 @@
     <div class="row flex-1 overflow-hidden" style="flex-wrap: nowrap">
       <div class="col-6 q-pa-sm yaki-card column nowrap">
         <div class="text-h6">Пользователи:</div>
-        <UserTable :data="users" class="overflow-auto flex-1" />
+        <q-input :debounce="300" v-model="userSearch" filled label="Поиск пользователей по номеру телефона">
+          <template #prepend>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+        <UserTable
+          :data="usersApi.data.value"
+          :loading="usersApi.loading.value"
+          @onUserClick="onUserClick"
+          :activeUser="activeUser"
+          class="overflow-auto flex-1"
+        />
       </div>
       <div class="col-6 q-pa-sm yaki-card column nowrap">
-        <div class="text-h6">Предложение пользователям:</div>
-        <DishTable :data="dishes" class="overflow-auto flex-1" />
+        <div class="text-h6">Рекомендации пользователю:</div>
+        <DishTable
+          score
+          :data="bestDishesApi.data.value"
+          :loading="bestDishesApi.loading.value"
+          class="overflow-auto flex-1"
+        />
       </div>
     </div>
-    <div class="row flex-1 overflow-auto">
-      <div class="col-12 q-pa-sm">
+    <div class="row flex-1 overflow-hidden" style="flex-wrap: nowrap">
+      <div class="col-6 q-pa-sm yaki-card column nowrap">
+        <div class="text-h6">Все блюда:</div>
+        <q-input :debounce="300" v-model="dishSearch" filled  label="Поиск блюд">
+          <template #prepend>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+        <DishTable
+          :data="dishesApi.data.value"
+          :activeDish="activeDish"
+          :loading="dishesApi.loading.value"
+          class="overflow-auto flex-1"
+          @onDishClick="onDishClick"
+        />
+      </div>
+      <div class="col-6 q-pa-sm yaki-card column nowrap">
         <div class="text-h6">Похожие блюда:</div>
-        <DishTable :data="dishes" />
+        <DishTable
+          :loading="similarDishApi.loading.value"
+          :data="similarDishApi.data.value"
+          class="overflow-auto flex-1"
+        />
       </div>
     </div>
+    <q-btn
+      @click="showDialog = true"
+      rounded
+      icon="settings"
+      color="primary"
+      class="fixed"
+      style="top: 60px; right: 10px"
+    />
+    <q-dialog v-model="showDialog">
+      <q-card>
+        <q-card-section>
+          <q-checkbox v-model="settings.filter_already_liked_items" label="не показывать в рекомендациях те блюда которые были заказаны"/>
+        </q-card-section>
+        <q-card-section>
+          <q-input type="number" v-model="settings.count" label="количество"/>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
 import UserTable from "components/UserTable.vue";
-import { api } from "src/boot/axios";
 import DishTable from "src/components/DishTable.vue";
-import { ref } from "vue";
+import { ref, watch, reactive } from "vue";
+import { useList } from "src/composables/useList";
+import { usePOSTList } from "src/composables/usePOSTList";
+
 defineOptions({
   name: "IndexPage",
 });
 
-const dishes = ref([
-  {
-    id: 1,
-    label: "Сяки-маки",
-    dg_id: 1,
-  },
-  {
-    id: 1,
-    label: "Сяки-маки",
-    dg_id: 1,
-  },
-  {
-    id: 1,
-    label: "Сяки-маки",
-    dg_id: 1,
-  },
-  {
-    id: 1,
-    label: "Сяки-маки",
-    dg_id: 1,
-  },
-  {
-    id: 1,
-    label: "Сяки-маки",
-    dg_id: 1,
-  },
-  {
-    id: 1,
-    label: "Сяки-маки",
-    dg_id: 1,
-  },
-]);
+const usersApi = useList()
+const bestDishesApi = usePOSTList()
+const dishesApi = useList()
+const similarDishApi = usePOSTList()
+const userSearch = ref('')
+const dishSearch = ref('')
+const activeUser = ref(null)
+const activeDish = ref(null)
+const showDialog = ref(false)
 
-const users = ref([
-  {
-    id: 1,
-    phone: "89155020188",
-    dg_id: 1,
-  },
-  {
-    id: 2,
-    phone: "89155020189",
-    dg_id: 2,
-  },
-  {
-    id: 3,
-    phone: "89155020190",
-    dg_id: 3,
-  },
-  {
-    id: 4,
-    phone: "89155020191",
-    dg_id: 4,
-  },
-  {
-    id: 5,
-    phone: "89155020192",
-    dg_id: 5,
-  },
-  {
-    id: 6,
-    phone: "89155020193",
-    dg_id: 6,
-  },
-  {
-    id: 7,
-    phone: "89155020194",
-    dg_id: 7,
-  },
-  {
-    id: 8,
-    phone: "89155020195",
-    dg_id: 8,
-  },
-  {
-    id: 9,
-    phone: "89155020196",
-    dg_id: 9,
-  },
-]);
-
-async function getUsers() {
-  api.get("users/").then(({ data }) => {
-    users.value = data;
-  });
+const settings = reactive({
+  filter_already_liked_items: false,
+  count: 10
+})
+function onUserClick(user) {
+  activeUser.value = user
+  bestDishesApi.getData('recommended', {user_dg_id: user.dg_id, ...settings})
 }
+
+function onDishClick(dish) {
+  activeDish.value = dish
+  similarDishApi.getData('similar', {dish_dg_id: dish.dg_id, ...settings})
+}
+function getUsers() {
+  usersApi.getData('users', {search: userSearch.value})
+}
+function getDish() {
+  dishesApi.getData('dishes',{search: dishSearch.value})
+}
+
+getUsers()
+getDish()
+
+watch(userSearch, ()=>getUsers())
+watch(dishSearch, ()=>getDish())
 </script>
 
 <style scoped>
