@@ -129,10 +129,6 @@ async function getDish(cb=null) {
   dishesOffset += 10
 }
 
-
-getUsers()
-getDish()
-
 watch(userSearch, ()=>getUsers())
 watch(dishSearch, ()=>getDish())
 </script>
