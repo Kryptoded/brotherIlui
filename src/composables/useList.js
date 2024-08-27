@@ -11,6 +11,7 @@ export function useList() {
     return api.get(url, {params: params})
       .then((response) => {
         data.value = response.data.results
+        return response.data.results
       })
       .finally(() => {
         loading.value = false

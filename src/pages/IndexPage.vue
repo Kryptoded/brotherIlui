@@ -9,10 +9,12 @@
           </template>
         </q-input>
         <UserTable
-          :data="usersApi.data.value"
+          :data="users"
           :loading="usersApi.loading.value"
           @onUserClick="onUserClick"
+          @load="getUsers"
           :activeUser="activeUser"
+          style="max-height: 500px;"
           class="overflow-auto flex-1"
         />
       </div>
@@ -35,11 +37,13 @@
           </template>
         </q-input>
         <DishTable
-          :data="dishesApi.data.value"
+          :data="dishes"
+          style="max-height: 500px;"
           :activeDish="activeDish"
           :loading="dishesApi.loading.value"
           class="overflow-auto flex-1"
           @onDishClick="onDishClick"
+          @load="getDish"
         />
       </div>
       <div class="col-6 q-pa-sm yaki-card column nowrap">
@@ -92,6 +96,10 @@ const dishSearch = ref('')
 const activeUser = ref(null)
 const activeDish = ref(null)
 const showDialog = ref(false)
+const users = ref([])
+const dishes = ref([])
+let usersOffset = 10
+let dishesOffset = 10
 
 const settings = reactive({
   filter_already_liked_items: false,
@@ -106,12 +114,21 @@ function onDishClick(dish) {
   activeDish.value = dish
   similarDishApi.getData('similar', {dish_dg_id: dish.dg_id, ...settings})
 }
-function getUsers() {
-  usersApi.getData('users', {search: userSearch.value})
+async function getUsers(cb = null) {
+  await usersApi.getData('users', {search: userSearch.value, offset: usersOffset}).then((newUsers) => users.value.push(...newUsers))
+  if (cb) {
+    cb()
+  }
+  usersOffset += 10
 }
-function getDish() {
-  dishesApi.getData('dishes',{search: dishSearch.value})
+async function getDish(cb=null) {
+  await dishesApi.getData('dishes',{search: dishSearch.value, offset:dishesOffset}).then((newDishes) => dishes.value.push(...newDishes))
+  if (cb) {
+    cb()
+  }
+  dishesOffset += 10
 }
+
 
 getUsers()
 getDish()
