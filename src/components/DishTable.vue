@@ -1,6 +1,6 @@
 <template>
   <q-card>
-    <q-infinite-scroll @load="onLoad">
+    <q-infinite-scroll @load="onLoad" ref="infinityScroll">
       <q-markup-table>
         <thead>
           <q-th>Наименование</q-th>
@@ -41,6 +41,7 @@
 </template>
 
 <script setup>
+import { ref } from "vue"
 const emits = defineEmits(["onDishClick", "load"]);
 const props = defineProps({
   data: {
@@ -68,6 +69,16 @@ function onDishClick(dish) {
 function onLoad(index, done) {
   emits('load', done)
 }
+
+const infinityScroll = ref(null)
+
+function stop() {
+  infinityScroll.value.stop()
+}
+
+defineExpose({
+  stop
+})
 
 </script>
 

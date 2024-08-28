@@ -16,6 +16,7 @@
           :activeUser="activeUser"
           style="max-height: 500px;"
           class="overflow-auto flex-1"
+          ref="userTable"
         />
       </div>
       <div class="col-6 q-pa-sm yaki-card column nowrap">
@@ -38,6 +39,7 @@
         </q-input>
         <DishTable
           :data="dishes"
+          ref="dishesTable"
           style="max-height: 500px;"
           :activeDish="activeDish"
           :loading="dishesApi.loading.value"
@@ -101,6 +103,9 @@ const dishes = ref([])
 let usersOffset = 10
 let dishesOffset = 10
 
+const userTable = ref(null)
+const dishesTable = ref(null)
+
 const settings = reactive({
   filter_already_liked_items: false,
   count: 10
@@ -115,14 +120,34 @@ function onDishClick(dish) {
   similarDishApi.getData('similar', {dish_dg_id: dish.dg_id, ...settings})
 }
 async function getUsers(cb = null) {
-  await usersApi.getData('users', {search: userSearch.value, offset: usersOffset}).then((newUsers) => users.value.push(...newUsers))
+  await usersApi.getData('users', {search: userSearch.value, offset: usersOffset})
+  .then((newUsers) => {
+    if (newUsers.length) {
+      users.value.push(...newUsers)
+    } else {
+      userTable.value.stop()
+    }
+  })
+  .catch(() => {
+    userTable.value.stop()
+  });
   if (cb) {
     cb()
   }
   usersOffset += 10
 }
 async function getDish(cb=null) {
-  await dishesApi.getData('dishes',{search: dishSearch.value, offset:dishesOffset}).then((newDishes) => dishes.value.push(...newDishes))
+  await dishesApi.getData('dishes',{search: dishSearch.value, offset:dishesOffset}).then((newDishes) => {
+    if (newDishes.length) {
+      dishes.value.push(...newDishes)
+    } else {
+      dishesTable.value.stop()
+      return
+    }
+  })
+  .catch(() => {
+    dishesTable.value.stop()
+  });
   if (cb) {
     cb()
   }

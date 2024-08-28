@@ -1,6 +1,6 @@
 <template>
   <q-card ref="card">
-    <q-infinite-scroll @load="onLoad" :offset="250">
+    <q-infinite-scroll @load="onLoad" :offset="250" ref="infinityScroll">
       <q-markup-table>
         <thead>
           <q-th>Номер телефона</q-th>
@@ -52,6 +52,8 @@ const props = defineProps({
 
 const emits = defineEmits(["onUserClick", "load"]);
 
+const infinityScroll = ref(null)
+
 function onUserClick(user) {
   emits("onUserClick", user);
 }
@@ -60,6 +62,13 @@ function onLoad(index, done) {
   emits('load', done)
 }
 
+function stop() {
+  infinityScroll.value.stop()
+}
+
+defineExpose({
+  stop
+})
 </script>
 
 <style scoped>
