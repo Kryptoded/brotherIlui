@@ -100,8 +100,8 @@ const activeDish = ref(null)
 const showDialog = ref(false)
 const users = ref([])
 const dishes = ref([])
-let usersOffset = 10
-let dishesOffset = 10
+let usersOffset = 0
+let dishesOffset = 0
 
 const userTable = ref(null)
 const dishesTable = ref(null)
@@ -120,6 +120,7 @@ function onDishClick(dish) {
   similarDishApi.getData('similar', {dish_dg_id: dish.dg_id, ...settings})
 }
 async function getUsers(cb = null) {
+  usersOffset += 10
   await usersApi.getData('users', {search: userSearch.value, offset: usersOffset})
   .then((newUsers) => {
     if (newUsers.length) {
@@ -134,9 +135,10 @@ async function getUsers(cb = null) {
   if (cb) {
     cb()
   }
-  usersOffset += 10
+
 }
 async function getDish(cb=null) {
+  dishesOffset += 10
   await dishesApi.getData('dishes',{search: dishSearch.value, offset:dishesOffset}).then((newDishes) => {
     if (newDishes.length) {
       dishes.value.push(...newDishes)
@@ -151,7 +153,7 @@ async function getDish(cb=null) {
   if (cb) {
     cb()
   }
-  dishesOffset += 10
+
 }
 
 function findDish() {
