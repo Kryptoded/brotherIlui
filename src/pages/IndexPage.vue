@@ -154,8 +154,26 @@ async function getDish(cb=null) {
   dishesOffset += 10
 }
 
-watch(userSearch, ()=>getUsers())
-watch(dishSearch, ()=>getDish())
+function findDish() {
+  dishesOffset = 10
+  dishesTable.value.start()
+  return dishesApi.getData('dishes',{search: dishSearch.value, offset:dishesOffset})
+    .then((newDishes) => {
+        dishes.value = newDishes
+    })
+}
+
+function findUser() {
+  usersOffset = 10
+  userTable.value.start()
+  return usersApi.getData('users',{search: userSearch.value, offset:usersOffset})
+    .then((newUsers) => {
+        users.value = newUsers
+    })
+}
+
+watch(userSearch, ()=>findUser())
+watch(dishSearch, ()=>findDish())
 </script>
 
 <style scoped>

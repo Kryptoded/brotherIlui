@@ -66,8 +66,13 @@ function stop() {
   infinityScroll.value.stop()
 }
 
+function start() {
+  infinityScroll.value.resume()
+}
+
 defineExpose({
-  stop
+  stop,
+  start
 })
 </script>
 
